@@ -2,11 +2,12 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-#define MOSI    PIND2
-#define CLK     PIND4
-#define CS      PIND3
-#define MODE    PINB0
-#define INCR    PINB1
+#define MOSI         PIND2
+#define CLK          PIND4
+#define CS           PIND3
+#define MODE         PINB0
+#define INCR         PINB1
+#define TENTHSOUT    PINB2
 
 
 volatile uint8_t tenthTick = 0;
@@ -87,6 +88,10 @@ int main(void)
     DDRB &= ~(1 << MODE | 1 << INCR);
     PORTB |= (1 << MODE | 1 << INCR);
 
+    /* Set up tenths output */
+    DDRB &= 1 << TENTHSOUT;
+    PORTB &= ~(1 << TENTHSOUT);
+
     /* Set up SPI */
     spi_init();
 
@@ -137,6 +142,8 @@ int main(void)
     while(1) {
 
         if (!tenthTick) continue;
+
+        PORTB ^= (1 << TENTHSOUT);
 
         // Don't run clock if we're in set mode
         if (mode != 1) {
