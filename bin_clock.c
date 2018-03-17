@@ -106,22 +106,7 @@ int main(void)
     OCR1AH = 0x30;
     OCR1AL = 0xD4;
 
-    /* Enable interrupts */
-    sei();
-
-    delay_ms(1);
-
-    // Disable shutdown
-    set_register_data(0x0C, 0x01);
-
-    // Set scan limit to maximum
-    set_register_data(0x0B, 0x07);
-
-    // Set medium LED intensity
-    set_register_data(0x0A, 0x08);
-
-    clear_rows();
-
+    int8_t intensity = 0x05;
     int8_t tenths = 0;
     int8_t secs = 0;
     int8_t mins = 0;
@@ -138,6 +123,22 @@ int main(void)
 
     int8_t set = 1;
     int8_t toggleTenths = 0;
+
+    delay_ms(1);
+
+    // Disable shutdown
+    set_register_data(0x0C, 0x01);
+
+    // Set scan limit to maximum
+    set_register_data(0x0B, 0x07);
+
+    // Set intensity
+    set_register_data(0x0A, intensity);
+
+    clear_rows();
+
+    /* Enable interrupts */
+    sei();
 
     while(1) {
 
@@ -202,35 +203,40 @@ int main(void)
                 modePressedTenths = 0;
             }
         } else if (mode == 1) {
-            if (set == 6 && toggleTenths < 4) {
+            if (set == 7 && toggleTenths < 4) {
                 set_row(8, secs | (1 << 7));
             } else {
                 set_row(8, secs);
             }
-            if (set == 5 && toggleTenths < 4) {
+            if (set == 6 && toggleTenths < 4) {
                 set_row(7, mins | (1 << 7));
             } else {
                 set_row(7, mins);
             }
-            if (set == 4 && toggleTenths < 4) {
+            if (set == 5 && toggleTenths < 4) {
                 set_row(6, hours | (1 << 7));
             } else {
                 set_row(6, hours);
             }
-            if (set == 3 && toggleTenths < 4) {
+            if (set == 4 && toggleTenths < 4) {
                 set_row(4, date | (1 << 7));
             } else {
                 set_row(4, date);
             }
-            if (set == 2 && toggleTenths < 4) {
+            if (set == 3 && toggleTenths < 4) {
                 set_row(3, month | (1 << 7));
             } else {
                 set_row(3, month);
             }
-            if (set == 1 && toggleTenths < 4) {
+            if (set == 2 && toggleTenths < 4) {
                 set_row(2, year | (1 << 7));
             } else {
                 set_row(2, year);
+            }
+            if (set == 1 && toggleTenths < 4) {
+                set_row(1, intensity | (1 << 7));
+            } else {
+                set_row(1, intensity);
             }
 
             toggleTenths++;
@@ -238,7 +244,7 @@ int main(void)
 
             if (modePressedTenths > 4) {
                 set++;
-                if (set > 6) {
+                if (set > 7) {
                     set = 1;
                     mode = 0;
                 }
@@ -247,25 +253,25 @@ int main(void)
 
             if (incrPressedTenths > 2) {
                 switch (set) {
-                    case 6:
+                    case 7:
                         secs++;
                         if (secs > 59) {
                             secs = 0;
                         }
                         break;
-                    case 5:
+                    case 6:
                         mins++;
                         if (mins > 59) {
                             mins = 0;
                         }
                         break;
-                    case 4:
+                    case 5:
                         hours++;
                         if (hours > 23) {
                             hours = 0;
                         }
                         break;
-                    case 3:
+                    case 4:
                         date++;
                         if ((year % 4 == 0 && month == 2 && date > 29) ||
                                 (year % 4 != 0 && month == 2 && date > 28) ||
@@ -274,17 +280,24 @@ int main(void)
                             date = 1;
                         }
                         break;
-                    case 2:
+                    case 3:
                         month++;
                         if (month > 12) {
                             month = 1;
                         }
                         break;
-                    case 1:
+                    case 2:
                         year++;
                         if (year > 99) {
                             year = 0;
                         }
+                        break;
+                    case 1:
+                        intensity++;
+                        if (intensity > 0x0F) {
+                            intensity = 0;
+                        }
+                        set_register_data(0x0A, intensity);
                         break;
                 }
                 incrPressedTenths = 0;
