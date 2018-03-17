@@ -160,7 +160,7 @@ int main(void)
                 hours++;
                 mins = 0;
             }
-            if (hours > 24) {
+            if (hours > 23) {
                 date++;
                 hours = 0;
             }
