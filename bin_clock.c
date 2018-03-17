@@ -247,6 +247,8 @@ int main(void)
                 if (set > 7) {
                     set = 1;
                     mode = 0;
+                    // Clear intensity row
+                    set_row(1, 0);
                 }
                 modePressedTenths = 0;
             }
