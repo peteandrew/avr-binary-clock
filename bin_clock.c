@@ -106,7 +106,8 @@ int main(void)
     OCR1AH = 0x30;
     OCR1AL = 0xD4;
 
-    int8_t intensity = 0x05;
+    int8_t intensity = 0x01;
+
     int8_t tenths = 0;
     int8_t secs = 0;
     int8_t mins = 0;
@@ -115,7 +116,7 @@ int main(void)
     int8_t month = 1;
     int8_t year = 0;
 
-    /* 0 - normal time, 1 - set */
+    /* 0 - normal time, 1 - set time, 2 - dispay blanked */
     int8_t mode = 0;
 
     int8_t modePressedTenths = 0;
@@ -126,7 +127,7 @@ int main(void)
 
     delay_ms(1);
 
-    // Disable shutdown
+    // Enable display
     set_register_data(0x0C, 0x01);
 
     // Set scan limit to maximum
@@ -201,6 +202,12 @@ int main(void)
             if (modePressedTenths > 4) {
                 mode = 1;
                 modePressedTenths = 0;
+            }
+            if (incrPressedTenths > 4) {
+                mode = 2;
+                incrPressedTenths = 0;
+                // Shutdown display
+                set_register_data(0x0C, 0x00);
             }
         } else if (mode == 1) {
             if (set == 7 && toggleTenths < 4) {
@@ -303,6 +310,13 @@ int main(void)
                         break;
                 }
                 incrPressedTenths = 0;
+            }
+        } else if (mode == 2) {
+            if (incrPressedTenths > 4) {
+                mode = 0;
+                incrPressedTenths = 0;
+                // Enable display
+                set_register_data(0x0C, 0x01);
             }
         }
 
