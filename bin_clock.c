@@ -1,13 +1,17 @@
+// TODO:
+// Increase tick time to one second and decrease to a tenth when setting
+// Turn off display after period of time
+
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <avr/sleep.h>
 
 #define MOSI         PIND2
 #define CLK          PIND4
 #define CS           PIND3
 #define MODE         PINB0
 #define INCR         PINB1
-#define TENTHSOUT    PINB2
 
 
 volatile uint8_t tenthTick = 0;
@@ -88,10 +92,6 @@ int main(void)
     DDRB &= ~(1 << MODE | 1 << INCR);
     PORTB |= (1 << MODE | 1 << INCR);
 
-    /* Set up tenths output */
-    DDRB &= 1 << TENTHSOUT;
-    PORTB &= ~(1 << TENTHSOUT);
-
     /* Set up SPI */
     spi_init();
 
@@ -106,7 +106,7 @@ int main(void)
     OCR1AH = 0x30;
     OCR1AL = 0xD4;
 
-    int8_t intensity = 0x01;
+    int8_t intensity = 0x00;
 
     int8_t tenths = 0;
     int8_t secs = 0;
@@ -142,10 +142,11 @@ int main(void)
     sei();
 
     while(1) {
-
-        if (!tenthTick) continue;
-
-        PORTB ^= (1 << TENTHSOUT);
+        if (!tenthTick) {
+            set_sleep_mode(SLEEP_MODE_IDLE);
+            sleep_mode();
+            continue;
+        }
 
         // Don't run clock if we're in set mode
         if (mode != 1) {
@@ -303,7 +304,7 @@ int main(void)
                         break;
                     case 1:
                         intensity++;
-                        if (intensity > 0x0F) {
+                        if (intensity > 0x04) {
                             intensity = 0;
                         }
                         set_register_data(0x0A, intensity);
@@ -322,6 +323,8 @@ int main(void)
 
         tenthTick = 0;
 
+        set_sleep_mode(SLEEP_MODE_IDLE);
+        sleep_mode();
     }
 
     return 0;

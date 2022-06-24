@@ -24,7 +24,7 @@ $(PROJECT).lst: $(PROJECT).elf
 	$(OBJCOPY) -S $(PROJECT).elf $(PROJECT).lst
 
 flash: $(PROJECT).hex
-	$(AVRDUDE) -c usbasp -p $(MCU) -B 25 -U flash:w:$(PROJECT).hex
+	$(AVRDUDE) -P /dev/ttyACM0 -c stk500v2 -b 19200 -p $(MCU) -U flash:w:$(PROJECT).hex
 
 clean:
 	rm -f *.hex *.elf *.lst
